@@ -1,25 +1,28 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<VSTemplate Version="3.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">
+<VSTemplate Version="3.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Project">
   <TemplateData>
     <Name>Mount &amp; Blade 2: Bannerlord Mod (C#)</Name>
     <Description>Project template for Mount and Blade 2: Bannerlord.</Description>
     <Icon>TemplateIcon.ico</Icon>
     <ProjectType>CSharp</ProjectType>
+    <ProjectSubType/>
     <LanguageTag>csharp</LanguageTag>
-    <RequiredFrameworkVersion>4.7.2</RequiredFrameworkVersion>
+    <PlatformTag>Windows</PlatformTag>
+    <ProjectTypeTag>Games</ProjectTypeTag>
     <SortOrder>1000</SortOrder>
-    <TemplateID>5b5a7681-5d65-47cb-931d-d9f5c32c2663</TemplateID>
+    <TemplateID>Bannerlord.Module</TemplateID>
     <CreateNewFolder>true</CreateNewFolder>
     <DefaultName>Bannerlord_Mod_</DefaultName>
     <ProvideDefaultName>true</ProvideDefaultName>
     <PromptForSaveOnCreation>true</PromptForSaveOnCreation>
   </TemplateData>
   <TemplateContent>
-    <Project File="ProjectTemplate.csproj" ReplaceParameters="true">
-      <ProjectItem ReplaceParameters="true" TargetFileName="Properties\AssemblyInfo.cs">AssemblyInfo.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" OpenInEditor="true">SubModule.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="false" OpenInEditor="true">Readme.txt</ProjectItem>
-      <ProjectItem ReplaceParameters="true" OpenInEditor="false">SubModule.xml</ProjectItem>
+    <Project TargetFileName="ProjectTemplate.csproj" File="ProjectTemplate.csproj" ReplaceParameters="true">
+      <ProjectItem ReplaceParameters="true" TargetFileName="SubModule.cs">SubModule.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="Readme.txt" >Readme.txt</ProjectItem>
+      <Folder Name="_Module" TargetFolderName="_Module">
+        <ProjectItem ReplaceParameters="true" TargetFileName="SubModule.xml">SubModule.xml</ProjectItem>
+      </Folder>
     </Project>
   </TemplateContent>
   <WizardExtension>
@@ -27,9 +30,5 @@
     <FullClassName>BannerlordModVSX.TemplateWizard</FullClassName>
   </WizardExtension>
   <WizardData>
-    <!-- This is where we add more nuget packages, it's parsed & downloaded after project creation -->
-    <packages repository="extension" repositoryId="BannerlordModVSX.e29f6264-d4b7-4f57-a131-a59652330308">
-      <package id="Lib.Harmony" version="2.0.0.9"/>
-    </packages>
   </WizardData>
 </VSTemplate>

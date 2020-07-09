@@ -1,79 +1,137 @@
-<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!-- Main Project Properties -->
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <PlatformTarget Condition=" '$(PlatformTarget)' == '' ">x64</PlatformTarget>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>$guid1$</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>$safeprojectname$</RootNamespace>
     <AssemblyName>$safeprojectname$</AssemblyName>
-    <TargetFrameworkVersion>v$targetframeworkversion$</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
+    <Product>$projectname$</Product>
+    <Company>$registeredorganization$</Company>
+    <Copyright>Copyright © $registeredorganization$ $year$</Copyright>
+    <!--This property will be used to mark the version of your output assembly and the version of yout SubModule.xml-->
+    <Version>0.0.1</Version>
+    <!--The game uses the .NET Framework 4.7.2 runtime, but I would recommed you to use 'netstandard2.0' target framework-->
+    <TargetFrameworks>net472</TargetFrameworks>
+    <!--Optional-->
+    <LangVersion>latest</LangVersion>
+    <!--Optional-->
+    <Nullable>enable</Nullable>
+    <!--Replace with your actual game folder-->
+    <GameFolder>$BannerlordDirectory$</GameFolder>
+    <!--Folder name in /Modules that will be created-->
+    <ModuleName>$safeprojectname$</ModuleName>
+    <NoWarn>NU1701</NoWarn>
   </PropertyGroup>
-  <!-- Debug Configuration Properties -->
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>$BannerlordDirectory$\Modules\$safeprojectname$\bin\Win64_Shipping_Client</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <!-- Release Configuration Properties -->
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>$BannerlordDirectory$\Modules\$safeprojectname$\bin\Win64_Shipping_Client</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <!-- Debugging Properties -->
-  <PropertyGroup>
-    <StartAction>Program</StartAction>
-    <StartProgram>$BannerlordExecutable$</StartProgram>
-    <StartArguments>$BannerlordDebugArgs$</StartArguments>
-    <StartWorkingDirectory>$BannerlordDirectory$\bin\Win64_Shipping_Client</StartWorkingDirectory>
-  </PropertyGroup>
-  <!-- Bannerlord Native Assemblies -->
+
+   <!--Reference the main game libraries, including the modules.
+       Make sure to make your module depend on any game module that you use.-->
   <ItemGroup>
-    <Reference Include="$BannerlordDirectory$\bin\Win64_Shipping_Client\TaleWorlds*.dll">
+    <Reference Include="$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.*.dll">
       <HintPath>%(Identity)</HintPath>
       <Private>False</Private>
     </Reference>
-    <!-- Bannerlord Module Assemblies  -->
-    <Reference Include="$BannerlordDirectory$\Modules\Native\bin\Win64_Shipping_Client\TaleWorlds*.dll">
+    <Reference Include="$(GameFolder)\Modules\Native\bin\Win64_Shipping_Client\*.dll">
       <HintPath>%(Identity)</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="$BannerlordDirectory$\Modules\SandBox\bin\Win64_Shipping_Client\SandBox*.dll">
+    <Reference Include="$(GameFolder)\Modules\SandBox\bin\Win64_Shipping_Client\*.dll">
       <HintPath>%(Identity)</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="$BannerlordDirectory$\Modules\StoryMode\bin\Win64_Shipping_Client\StoryMode*.dll">
+    <Reference Include="$(GameFolder)\Modules\SandBoxCore\bin\Win64_Shipping_Client\*.dll">
       <HintPath>%(Identity)</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="$BannerlordDirectory$\Modules\CustomBattle\bin\Win64_Shipping_Client\TaleWorlds*.dll">
+    <Reference Include="$(GameFolder)\Modules\StoryMode\bin\Win64_Shipping_Client\*.dll">
       <HintPath>%(Identity)</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
-  <!-- Files & Classes -->
+
   <ItemGroup>
-    <Compile Include="SubModule.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Content Include="Readme.txt"/>
-    <Content Include="SubModule.xml"/>
+    <!--Bannerlord uses Newtonsoft.Json v11.0.2. Use NuGet package instead of referencing the /bin one.-->
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" PrivateAssets="All" />
   </ItemGroup>
-  <!-- Post-Build -->
-  <PropertyGroup>
-    <PostBuildEvent>xcopy /d /y "$(MSBuildProjectDirectory)\SubModule.xml" "$BannerlordDirectory$\Modules\$safeprojectname$"</PostBuildEvent>
-  </PropertyGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
+   <ItemGroup>
+     <Content Include="SubModule.cs" />
+     <Content Include="Readme.txt"/>
+     <Content Include="_Module/SubModule.xml"/>
+   </ItemGroup>
+
+
+     <!--For automatically creating the module-->
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(ModuleName) != ''">
+    <CreateDirectory Directory="$(GameFolder)/Modules/$(ModuleName)/bin/Win64_Shipping_Client" />
+
+    <CopyFolder FromDirectory="$(TargetDir)" ToDirectory="$(GameFolder)/Modules/$(ModuleName)/bin/Win64_Shipping_Client" Regex="^.*\.dll$" Clean="true" />
+
+    <CopyFolder FromDirectory="$(ProjectDir)/_Module" ToDirectory="$(GameFolder)/Modules/$(ModuleName)" Regex="^.*$" Clean="false" />
+
+    <ReplaceFileText File="$(GameFolder)/Modules/$(ModuleName)/SubModule.xml" Regex="\$version\$" ReplacementText="$(Version)" />
+  </Target>
+
+  <!--The actual tasks-->
+  <UsingTask TaskName="CreateDirectory" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Directory ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+            var directory = new DirectoryInfo(Directory);
+            if (!directory.Exists)
+                directory.Create();
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <UsingTask TaskName="CopyFolder" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <FromDirectory ParameterType="System.String" Required="true" />
+      <ToDirectory ParameterType="System.String" Required="true" />
+      <Regex ParameterType="System.String" Required="true" />
+      <Clean ParameterType="System.Boolean" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+            void CopyTo(System.IO.DirectoryInfo from, System.IO.DirectoryInfo to)
+            {
+                if (!to.Exists)
+                  to.Create();
+            
+                if (Clean)
+                {
+                    foreach (var fileInfo in to.GetFiles().Where(x => System.Text.RegularExpressions.Regex.IsMatch(x.Name, Regex)))
+                        fileInfo.Delete();
+                }
+        
+                foreach (var fileInfo in from.GetFiles().Where(x => System.Text.RegularExpressions.Regex.IsMatch(x.Name, Regex)))
+                    fileInfo.CopyTo(System.IO.Path.Combine(to.FullName, fileInfo.Name), true);
+                foreach (var directoryInfo in from.GetDirectories())
+                    CopyTo(directoryInfo, to.CreateSubdirectory(directoryInfo.Name));
+            }
+            CopyTo(new System.IO.DirectoryInfo(FromDirectory), new System.IO.DirectoryInfo(ToDirectory));
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <UsingTask TaskName="ReplaceFileText" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <File ParameterType="System.String" Required="true" />
+      <Regex ParameterType="System.String" Required="true" />
+      <ReplacementText ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+          System.IO.File.WriteAllText(
+            File,
+            System.Text.RegularExpressions.Regex.Replace(System.IO.File.ReadAllText(File), Regex, ReplacementText));
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
 </Project>

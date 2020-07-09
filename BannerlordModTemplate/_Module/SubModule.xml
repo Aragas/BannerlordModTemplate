@@ -1,9 +1,10 @@
 ﻿<Module>
   <Name value="$projectname$ a Bannerlord Mod"/>
   <Id value="$safeprojectname$"/>
-  <Version value="v1.0.0"/>
+  <Version value="v$version$"/>
   <SingleplayerModule value="true"/>
   <MultiplayerModule value="false"/>
+  <Official value="false"/>
   <DependedModules>
     <DependedModule Id="Native"/>
     <DependedModule Id="SandBoxCore"/>

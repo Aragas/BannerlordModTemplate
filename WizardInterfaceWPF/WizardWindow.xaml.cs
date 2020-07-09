@@ -2,8 +2,9 @@
 using MahApps.Metro.Controls.Dialogs;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Windows;
-using WinForms = System.Windows.Forms;
+using System.Windows.Forms;
 
 namespace WizardInterfaceWPF
 {
@@ -13,12 +14,12 @@ namespace WizardInterfaceWPF
     public partial class WizardWindow : MetroWindow
     {
         // TODO: Two strings for directory? One escaped, one non-escaped?
-        public string BannerlordDirectory {get{ return PathTextBox.Text.Replace("&", "&amp;"); }}
-        public bool IncludeSubModule {get{ return IncludeSubModuleCheckBox.IsChecked.Value; }}
-        public bool IncludeReadme {get{ return IncludeReadmeCheckBox.IsChecked.Value; }}
-        public bool IncludeHarmony {get{ return IncludeHarmonyCheckBox.IsChecked.Value; }}
-        public bool UseLauncherMods {get{ return UseLauncherModulesCheckBox.IsChecked.Value; }}
-        public List<string> LauncherMods {get{ return GameFinder.GetLauncherModules(); }}
+        public string BannerlordDirectory => PathTextBox.Text.Replace("&", "&amp;");
+        public bool IncludeSubModule => IncludeSubModuleCheckBox.IsChecked ?? false;
+        public bool IncludeReadme => IncludeReadmeCheckBox.IsChecked ?? false;
+        public bool IncludeHarmony => IncludeHarmonyCheckBox.IsChecked ?? false;
+        public bool UseLauncherMods => UseLauncherModulesCheckBox.IsChecked ?? false;
+        public List<string> LauncherMods => GameFinder.GetLauncherModules();
 
 
         public WizardWindow()
@@ -28,64 +29,88 @@ namespace WizardInterfaceWPF
 
         private void ButtonClick_Manager(object sender, RoutedEventArgs e)
         {
-            if(sender == BrowsePathButton)
+            if (ReferenceEquals(sender, BrowsePathButton))
             {
-                using (var folderBrowser = new WinForms.FolderBrowserDialog())
+                using (var folderBrowser = new FolderBrowserDialog())
                 {
                     folderBrowser.RootFolder = Environment.SpecialFolder.MyComputer;
                     folderBrowser.ShowNewFolderButton = false;
                     folderBrowser.Description = "Browse to M&B 2: Bannerlord Root Folder";
 
-                    WinForms.DialogResult dialogResult = folderBrowser.ShowDialog();
-                    if(dialogResult == WinForms.DialogResult.OK)
+                    if (folderBrowser.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                     {
-                        if(GameFinder.VerifyInstallPath(folderBrowser.SelectedPath))
+                        if (GameFinder.VerifyInstallPath(folderBrowser.SelectedPath))
                         {
                             ConfirmButton.IsEnabled = true;
                             PathTextBox.Text = folderBrowser.SelectedPath;
-                        } else {
+                        }
+                        else
+                        {
                             BannerlordPathFailed(1);
                         }
-                    } else {
+                    }
+                    else
+                    {
                         // User cancelled or closed the dialog
                     }
                 }
             }
 
-            if (sender == ConfirmButton)
-                this.DialogResult = true;
+            if (ReferenceEquals(sender, ConfirmButton))
+                DialogResult = true;
 
-            if (sender == CancelButton)
-                this.DialogResult = false;
+            if (ReferenceEquals(sender, CancelButton))
+                DialogResult = false;
 
-            if (sender == GitHubButton)
+            if (ReferenceEquals(sender, GitHubButton))
                 System.Diagnostics.Process.Start("https://github.com/Dealman/BannerlordModTemplate");
 
-            if (sender == ForumButton)
+            if (ReferenceEquals(sender, ForumButton))
                 System.Diagnostics.Process.Start("https://forums.taleworlds.com/index.php?threads/release-mod-template-for-visual-studio-automatically-configs-adds-references-and-more.413981/");
         }
 
+        private static string DefaultSteamInstallation = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Mount & Blade II Bannerlord";
+        private static string DefaultEGInstallation = "C:\\Program Files\\Epic Games\\Chickadee";
         private void MetroWindow_ContentRendered(object sender, EventArgs e)
         {
-            string installPath = GameFinder.GetLocationViaUninstallEntry();
-            if(GameFinder.VerifyInstallPath(installPath))
+            if (Directory.Exists(DefaultSteamInstallation))
+            {
+                ConfirmButton.IsEnabled = true;
+                PathTextBox.Text = DefaultSteamInstallation;
+                return;
+            }
+
+            if (Directory.Exists(DefaultEGInstallation))
+            {
+                ConfirmButton.IsEnabled = true;
+                PathTextBox.Text = DefaultEGInstallation;
+                return;
+            }
+
+            var installPath = GameFinder.GetLocationViaRegistry();
+            if (GameFinder.VerifyInstallPath(installPath))
             {
                 ConfirmButton.IsEnabled = true;
                 PathTextBox.Text = installPath;
-            } else {
-                BannerlordPathFailed(0);
+                return;
             }
+
+
+            BannerlordPathFailed(0);
         }
 
         private async void BannerlordPathFailed(int reason)
         {
-            switch(reason)
+            switch (reason)
             {
                 case 0:
-                    await this.ShowMessageAsync("Warning", "Unable to automatically locate M&B 2: Bannerlord.\n\nPlease, try and locate it manually instead.", MessageDialogStyle.Affirmative);
+                    await this.ShowMessageAsync("Warning",
+                        "Unable to automatically locate M&B 2: Bannerlord.\n\nPlease, try and locate it manually instead.");
                     break;
                 case 1:
-                    await this.ShowMessageAsync("Warning", "Selected folder failed to verify! Are you sure this is the root folder for Bannerlord? Try again.\n\nExample:\n"+ @"C:\Program Files (x86)\Steam\steamapps\common\Mount & Blade II Bannerlord", MessageDialogStyle.Affirmative);
+                    await this.ShowMessageAsync("Warning",
+                        "Selected folder failed to verify! Are you sure this is the root folder for Bannerlord? Try again.\n\nExample:\n" +
+                        @"C:\Program Files (x86)\Steam\steamapps\common\Mount & Blade II Bannerlord");
                     break;
             }
         }
