@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+﻿#nullable enable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,25 +9,17 @@ namespace WizardInterfaceWPF
 {
     internal static class GameFinder
     {
-        public static string GetLocationViaRegistry()
+        public static string? GetLocation()
         {
-            var steamInstallPath = Registry.GetValue(
-                @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 261550",
-                "InstallLocation", null);
-
-            if (steamInstallPath is string str && !string.IsNullOrWhiteSpace(str))
-                return str;
-
-
-            return null;
+            // TODO: Epic Game Launcher
+            var steamSore = new SteamStore();
+            return steamSore.FindByAppId("261550")?.GamePath;
         }
 
-        public static bool VerifyInstallPath(string path) =>
-            !string.IsNullOrWhiteSpace(path) && File.Exists(path + @"\bin\Win64_Shipping_Client\Bannerlord.exe");
+        public static bool VerifyInstallPath(string path) => File.Exists(path + @"\bin\Win64_Shipping_Client\Bannerlord.exe");
 
-        public static List<string> GetLauncherModules()
+        public static IEnumerable<string> GetLauncherModules()
         {
-            var moduleList = new List<string>();
             var documentsDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             var launcherConfig = documentsDirectory + @"\Mount and Blade II Bannerlord\Configs\LauncherData.xml";
 
@@ -41,18 +33,8 @@ namespace WizardInterfaceWPF
                         .Select(x => x.Element("Id"));
 
                     foreach (string moduleName in xmlQuery)
-                    {
-                        moduleList.Add(moduleName);
-                    }
-
-                    return moduleList;
+                        yield return moduleName;
                 }
-
-                return null;
-            }
-            else
-            {
-                return null;
             }
         }
     }

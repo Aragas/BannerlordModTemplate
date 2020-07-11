@@ -29,6 +29,7 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -97,7 +98,9 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="SteamStore.cs" />
     <Compile Include="GameFinder.cs" />
+    <Compile Include="SteamStoreEntry.cs" />
     <Compile Include="WizardWindow.xaml.cs">
       <DependentUpon>WizardWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -142,6 +145,12 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Gameloop.Vdf\Gameloop.Vdf\Gameloop.Vdf.csproj">
+      <Project>{12113a4f-4744-4876-945d-7e311c2e3fa3}</Project>
+      <Name>Gameloop.Vdf</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

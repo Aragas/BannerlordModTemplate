@@ -2,7 +2,7 @@
 using MahApps.Metro.Controls.Dialogs;
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Forms;
 
@@ -19,7 +19,7 @@ namespace WizardInterfaceWPF
         public bool IncludeReadme => IncludeReadmeCheckBox.IsChecked ?? false;
         public bool IncludeHarmony => IncludeHarmonyCheckBox.IsChecked ?? false;
         public bool UseLauncherMods => UseLauncherModulesCheckBox.IsChecked ?? false;
-        public List<string> LauncherMods => GameFinder.GetLauncherModules();
+        public List<string> LauncherMods => GameFinder.GetLauncherModules().ToList();
 
 
         public WizardWindow()
@@ -31,28 +31,28 @@ namespace WizardInterfaceWPF
         {
             if (ReferenceEquals(sender, BrowsePathButton))
             {
-                using (var folderBrowser = new FolderBrowserDialog())
+                using var folderBrowser = new FolderBrowserDialog
                 {
-                    folderBrowser.RootFolder = Environment.SpecialFolder.MyComputer;
-                    folderBrowser.ShowNewFolderButton = false;
-                    folderBrowser.Description = "Browse to M&B 2: Bannerlord Root Folder";
+                    RootFolder = Environment.SpecialFolder.MyComputer,
+                    ShowNewFolderButton = false,
+                    Description = "Browse to M&B 2: Bannerlord Root Folder"
+                };
 
-                    if (folderBrowser.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                if (folderBrowser.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    if (GameFinder.VerifyInstallPath(folderBrowser.SelectedPath))
                     {
-                        if (GameFinder.VerifyInstallPath(folderBrowser.SelectedPath))
-                        {
-                            ConfirmButton.IsEnabled = true;
-                            PathTextBox.Text = folderBrowser.SelectedPath;
-                        }
-                        else
-                        {
-                            BannerlordPathFailed(1);
-                        }
+                        ConfirmButton.IsEnabled = true;
+                        PathTextBox.Text = folderBrowser.SelectedPath;
                     }
                     else
                     {
-                        // User cancelled or closed the dialog
+                        BannerlordPathFailed(1);
                     }
+                }
+                else
+                {
+                    // User cancelled or closed the dialog
                 }
             }
 
@@ -69,26 +69,10 @@ namespace WizardInterfaceWPF
                 System.Diagnostics.Process.Start("https://forums.taleworlds.com/index.php?threads/release-mod-template-for-visual-studio-automatically-configs-adds-references-and-more.413981/");
         }
 
-        private static string DefaultSteamInstallation = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Mount & Blade II Bannerlord";
-        private static string DefaultEGInstallation = "C:\\Program Files\\Epic Games\\Chickadee";
         private void MetroWindow_ContentRendered(object sender, EventArgs e)
         {
-            if (Directory.Exists(DefaultSteamInstallation))
-            {
-                ConfirmButton.IsEnabled = true;
-                PathTextBox.Text = DefaultSteamInstallation;
-                return;
-            }
-
-            if (Directory.Exists(DefaultEGInstallation))
-            {
-                ConfirmButton.IsEnabled = true;
-                PathTextBox.Text = DefaultEGInstallation;
-                return;
-            }
-
-            var installPath = GameFinder.GetLocationViaRegistry();
-            if (GameFinder.VerifyInstallPath(installPath))
+            var installPath = GameFinder.GetLocation();
+            if (installPath != null && GameFinder.VerifyInstallPath(installPath))
             {
                 ConfirmButton.IsEnabled = true;
                 PathTextBox.Text = installPath;
